@@ -21,6 +21,8 @@ protected:
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
+	void TerningAtUp(float Rate);
+	void TerningAtRight(float Rate);
 
 public:	
 	// Called every frame
@@ -35,6 +37,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float TernRightRate{};
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float TernUpRate{};
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
