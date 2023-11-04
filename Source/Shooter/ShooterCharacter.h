@@ -23,6 +23,7 @@ protected:
 	void MoveRight(float Value);
 	void TerningAtUp(float Rate);
 	void TerningAtRight(float Rate);
+	void FireWeapon();
 
 public:	
 	// Called every frame
@@ -43,6 +44,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float TernUpRate{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class USoundCue* FireSound;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
