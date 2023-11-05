@@ -7,6 +7,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "DrawDebugHelpers.h"
 
 
 // Sets default values
@@ -81,7 +83,25 @@ void AShooterCharacter::TerningAtRight(float Rate)
 
 void AShooterCharacter::FireWeapon()
 {
-	UGameplayStatics::PlaySound2D(this, FireSound);
+	if (FireSound) UGameplayStatics::PlaySound2D(this, FireSound);
+
+	const USkeletalMeshSocket* ParticleShotSocket = GetMesh()->GetSocketByName(TEXT("ParticleFlash"));
+	if (ParticleShotSocket)
+	{
+		const FTransform SocketTransform = ParticleShotSocket->GetSocketTransform(GetMesh());
+
+		if (ParticleShot)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleShot, SocketTransform);
+		}
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && WeaponFire)
+	{
+		AnimInstance->Montage_Play(WeaponFire);
+		AnimInstance->Montage_JumpToSection(FName("StartFire"));
+	}
 }
 
 // Called every frame
