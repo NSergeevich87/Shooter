@@ -94,6 +94,27 @@ void AShooterCharacter::FireWeapon()
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleShot, SocketTransform);
 		}
+
+		FHitResult HitResult;
+		const FVector Start = SocketTransform.GetLocation();
+		const FQuat SocketRotation = SocketTransform.GetRotation();
+		const FVector SocketAxisX = SocketRotation.GetAxisX();
+		const FVector End{ Start + SocketAxisX * 50'000.f };
+		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+
+		if (HitResult.bBlockingHit)
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.f);
+			DrawDebugPoint(GetWorld(), HitResult.Location, 5.f, FColor::Red, true);
+			FString NameOfActor = HitResult.GetActor()->GetActorNameOrLabel();
+			UE_LOG(LogTemp, Warning, TEXT("Hit space: %s"), *NameOfActor);
+
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(),
+				InpactParticle,
+				HitResult.Location
+			);
+		}
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -108,7 +129,6 @@ void AShooterCharacter::FireWeapon()
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
