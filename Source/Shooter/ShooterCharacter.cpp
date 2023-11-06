@@ -104,13 +104,8 @@ void AShooterCharacter::FireWeapon()
 
 		if (HitResult.bBlockingHit)
 		{
-			DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.f);
-			DrawDebugPoint(GetWorld(), HitResult.Location, 5.f, FColor::Red, true);
-			FString NameOfActor = HitResult.GetActor()->GetActorNameOrLabel();
-			UE_LOG(LogTemp, Warning, TEXT("Hit space: %s"), *NameOfActor);
-
 			UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
+				GetWorld(),    
 				InpactParticle,
 				HitResult.Location
 			);
