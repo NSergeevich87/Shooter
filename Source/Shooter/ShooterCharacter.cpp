@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 // Sets default values
@@ -24,16 +25,17 @@ AShooterCharacter::AShooterCharacter() :
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 300.f; //The camera follows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = true; //Rotate the arm based on the controller
+	CameraBoom->SocketOffset = FVector{ 0.f, 50.f, 50.f };
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false; 
 
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->AirControl = 0.2f;
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
@@ -102,13 +104,23 @@ void AShooterCharacter::FireWeapon()
 		const FVector End{ Start + SocketAxisX * 50'000.f };
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
+		FVector BeamEndPosition{ End };
+
 		if (HitResult.bBlockingHit)
 		{
+			BeamEndPosition = HitResult.Location;
+
 			UGameplayStatics::SpawnEmitterAtLocation(
 				GetWorld(),    
 				InpactParticle,
 				HitResult.Location
 			);
+		}
+
+		UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticle, SocketTransform);
+		if (Beam)
+		{
+			Beam->SetVectorParameter(FName("Target"), BeamEndPosition);
 		}
 	}
 
