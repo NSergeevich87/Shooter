@@ -97,94 +97,28 @@ void AShooterCharacter::FireWeapon()
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleShot, SocketTransform);
 		}
 
-		FVector2D ScreenSize;
-		if (GEngine && GEngine->GameViewport)
+		FVector BeamEnd;
+		bool bBeamEnd = GetBeamEndLocation(
+			SocketTransform.GetLocation(), BeamEnd);
+		if (bBeamEnd)
 		{
-			GEngine->GameViewport->GetViewportSize(ScreenSize);
-		}
-		
-		FVector2D CrosshairLocation{ ScreenSize.X / 2.f, ScreenSize.Y / 2.f };
-		CrosshairLocation.Y -= 85;
-		CrosshairLocation.X += 35;
-
-		FVector CrosshairWorldPosition;
-		FVector CrosshairWorldDirection;
-
-		bool isDeprojectScreen = UGameplayStatics::DeprojectScreenToWorld(
-			UGameplayStatics::GetPlayerController(this, 0),
-			CrosshairLocation,
-			CrosshairWorldPosition,
-			CrosshairWorldDirection
-		);
-
-		if (isDeprojectScreen)
-		{
-			FHitResult HitResult;
-			const FVector Start = CrosshairWorldPosition;
-			const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * 50'000.f;
-			GetWorld()->LineTraceSingleByChannel(
-				HitResult,
-				Start,
-				End,
-				ECollisionChannel::ECC_Visibility
-			);
-
-			FVector BeamEndPosition{ End };
-
-			if (HitResult.bBlockingHit)
+			if (InpactParticle)
 			{
-				BeamEndPosition = HitResult.Location;
-				if (InpactParticle)
-				{
-					UGameplayStatics::SpawnEmitterAtLocation(
-						GetWorld(),
-						InpactParticle,
-						HitResult.Location
-					);
-				}
-			}
-
-			if (BeamParticle)
-			{
-				UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
+				UGameplayStatics::SpawnEmitterAtLocation(
 					GetWorld(),
-					BeamParticle,
-					SocketTransform
-				);
+					InpactParticle,
+					BeamEnd);
+			}
 
-				if (Beam)
-				{
-					Beam->SetVectorParameter(FName("Target"), BeamEndPosition);
-				}
+			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(),
+				BeamParticle,
+				SocketTransform);
+			if (Beam)
+			{
+				Beam->SetVectorParameter(FName("Target"), BeamEnd);
 			}
 		}
-		/*
-		FHitResult HitResult;
-		const FVector Start = SocketTransform.GetLocation();
-		const FQuat SocketRotation = SocketTransform.GetRotation();
-		const FVector SocketAxisX = SocketRotation.GetAxisX();
-		const FVector End{ Start + SocketAxisX * 50'000.f };
-		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
-
-		FVector BeamEndPosition{ End };
-
-		if (HitResult.bBlockingHit)
-		{
-			BeamEndPosition = HitResult.Location;
-
-			UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),    
-				InpactParticle,
-				HitResult.Location
-			);
-		}
-
-		UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticle, SocketTransform);
-		if (Beam)
-		{
-			Beam->SetVectorParameter(FName("Target"), BeamEndPosition);
-		}
-		*/
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -193,6 +127,71 @@ void AShooterCharacter::FireWeapon()
 		AnimInstance->Montage_Play(WeaponFire);
 		AnimInstance->Montage_JumpToSection(FName("StartFire"));
 	}
+}
+
+bool AShooterCharacter::GetBeamEndLocation(
+	const FVector& MuzzelSocketLocation, 
+	FVector& OutBeamLocation)
+{
+	//Get current size of the screen
+	FVector2D ScreenSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ScreenSize);
+	}
+	//Get screen space location of crosshairs
+	FVector2D CrosshairLocation{ ScreenSize.X / 2.f, ScreenSize.Y / 2.f };
+	CrosshairLocation.Y -= 85;
+	CrosshairLocation.X += 35;
+	FVector CrosshairWorldPosition;
+	FVector CrosshairWorldDirection;
+	//Get world position and direction
+	bool isDeprojectScreen = UGameplayStatics::DeprojectScreenToWorld(
+		UGameplayStatics::GetPlayerController(this, 0),
+		CrosshairLocation,
+		CrosshairWorldPosition,
+		CrosshairWorldDirection
+	);
+
+	if (isDeprojectScreen)
+	{
+		FHitResult HitResult;
+		const FVector Start = CrosshairWorldPosition;
+		const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * 50'000.f;
+		// Set beam end point to line trace and point
+		OutBeamLocation = End;
+
+		// Trace outward from crosshairs world location
+		GetWorld()->LineTraceSingleByChannel(
+			HitResult,
+			Start,
+			End,
+			ECollisionChannel::ECC_Visibility
+		);
+		if (HitResult.bBlockingHit)
+		{
+			OutBeamLocation = HitResult.Location;
+		}
+
+		// Perform a second trace, this time from the gun barrel
+		FHitResult ObjectHit;
+		FVector StartObjectHit{ MuzzelSocketLocation };
+		FVector EndObjectHit{ OutBeamLocation };
+		GetWorld()->LineTraceSingleByChannel(
+			ObjectHit,
+			StartObjectHit,
+			EndObjectHit,
+			ECollisionChannel::ECC_Visibility);
+
+		if (ObjectHit.bBlockingHit)
+		{
+			OutBeamLocation = ObjectHit.Location;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 // Called every frame

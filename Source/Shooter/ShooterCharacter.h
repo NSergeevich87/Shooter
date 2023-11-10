@@ -24,6 +24,7 @@ protected:
 	void TerningAtUp(float Rate);
 	void TerningAtRight(float Rate);
 	void FireWeapon();
+	bool GetBeamEndLocation(const FVector& MuzzelSocketLocation, FVector& OutBeamLocation);
 
 public:	
 	// Called every frame
@@ -58,7 +59,7 @@ private:
 	UParticleSystem* InpactParticle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	UParticleSystem* BeamParticle;
+	UParticleSystem* BeamParticle;   
 
 
 public:
