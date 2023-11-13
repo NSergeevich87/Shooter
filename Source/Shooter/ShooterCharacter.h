@@ -59,8 +59,7 @@ private:
 	UParticleSystem* InpactParticle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	UParticleSystem* BeamParticle;   
-
+	UParticleSystem* BeamParticle; 
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
