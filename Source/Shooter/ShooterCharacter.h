@@ -25,6 +25,8 @@ protected:
 	void TerningAtRight(float Rate);
 	void FireWeapon();
 	bool GetBeamEndLocation(const FVector& MuzzelSocketLocation, FVector& OutBeamLocation);
+	void ZoomCameraPressed();
+	void ZoomCameraReleased();
 
 public:	
 	// Called every frame
@@ -59,7 +61,13 @@ private:
 	UParticleSystem* InpactParticle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	UParticleSystem* BeamParticle; 
+	UParticleSystem* BeamParticle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool isAiming{};
+
+	float BaseCameraView{};
+	float ZoomCameraView{};
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

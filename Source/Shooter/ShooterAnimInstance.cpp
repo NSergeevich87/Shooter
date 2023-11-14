@@ -33,6 +33,11 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		FRotator MoveRotation = UKismetMathLibrary::MakeRotFromX(ShooterCharacter->GetVelocity());
 		offsetYawRotation = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, MoveRotation).Yaw;
 
+		if (ShooterCharacter->GetVelocity().Size() > 0.f)
+		{
+			lastOffsetYawRotation = offsetYawRotation;
+		}
+
 		FString offsetYawRotationnMessage = FString::Printf(TEXT("OffsetYaw is: %f"), offsetYawRotation);
 		//FString message = FString::Printf(TEXT("Aim rotation is: %f"), baseAimRotation.Yaw);
 		//FString moveMessage = FString::Printf(TEXT("Movement rotation is: %f"), moveAimRotation.Yaw);

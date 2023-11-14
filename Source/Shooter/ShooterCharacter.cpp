@@ -15,7 +15,10 @@
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
 	TernRightRate(45.f),
-	TernUpRate(45.f)
+	TernUpRate(45.f),
+	isAiming(false),
+	BaseCameraView(0.f),
+	ZoomCameraView(40.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -46,7 +49,11 @@ AShooterCharacter::AShooterCharacter() :
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
- 
+
+	if (FollowCamera)
+	{
+		BaseCameraView = GetFollowCamera()->FieldOfView;
+	}
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -194,6 +201,18 @@ bool AShooterCharacter::GetBeamEndLocation(
 	return false;
 }
 
+void AShooterCharacter::ZoomCameraPressed()
+{
+	isAiming = true;
+	GetFollowCamera()->SetFieldOfView(ZoomCameraView);
+}
+
+void AShooterCharacter::ZoomCameraReleased()
+{
+	isAiming = false;
+	GetFollowCamera()->SetFieldOfView(BaseCameraView);
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -215,5 +234,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction(TEXT("MainFire"), IE_Pressed, this, &AShooterCharacter::FireWeapon);
+	PlayerInputComponent->BindAction(TEXT("AimingButton"), IE_Pressed, this, &AShooterCharacter::ZoomCameraPressed);
+	PlayerInputComponent->BindAction(TEXT("AimingButton"), IE_Released, this, &AShooterCharacter::ZoomCameraReleased);
 }
 
