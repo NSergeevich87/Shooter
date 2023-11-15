@@ -18,7 +18,9 @@ AShooterCharacter::AShooterCharacter() :
 	TernUpRate(45.f),
 	isAiming(false),
 	BaseCameraView(0.f),
-	ZoomCameraView(40.f)
+	ZoomCameraView(35.f),
+	NormalCameraView(0.f),
+	ZoomCameraSpeed(20.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,9 +28,9 @@ AShooterCharacter::AShooterCharacter() :
 	//Create a camera boom
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.f; //The camera follows at this distance behind the character
+	CameraBoom->TargetArmLength = 220.f; //The camera follows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = true; //Rotate the arm based on the controller
-	CameraBoom->SocketOffset = FVector{ 0.f, 50.f, 50.f };
+	CameraBoom->SocketOffset = FVector{ 0.f, 50.f, 75.f };
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -53,6 +55,7 @@ void AShooterCharacter::BeginPlay()
 	if (FollowCamera)
 	{
 		BaseCameraView = GetFollowCamera()->FieldOfView;
+		NormalCameraView = BaseCameraView;
 	}
 }
 
@@ -204,19 +207,43 @@ bool AShooterCharacter::GetBeamEndLocation(
 void AShooterCharacter::ZoomCameraPressed()
 {
 	isAiming = true;
-	GetFollowCamera()->SetFieldOfView(ZoomCameraView);
 }
 
 void AShooterCharacter::ZoomCameraReleased()
 {
 	isAiming = false;
-	GetFollowCamera()->SetFieldOfView(BaseCameraView);
+}
+
+void AShooterCharacter::CameraInterpZoom(float DeltaTime)
+{
+	if (isAiming)
+	{
+		NormalCameraView = FMath::FInterpTo(
+			NormalCameraView,
+			ZoomCameraView,
+			DeltaTime,
+			ZoomCameraSpeed
+		);
+		GetFollowCamera()->SetFieldOfView(NormalCameraView);
+	}
+	else
+	{
+		NormalCameraView = FMath::FInterpTo(
+			NormalCameraView,
+			BaseCameraView,
+			DeltaTime,
+			ZoomCameraSpeed
+		);
+	}
+	GetFollowCamera()->SetFieldOfView(NormalCameraView);
 }
 
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	CameraInterpZoom(DeltaTime);
 }
 
 // Called to bind functionality to input

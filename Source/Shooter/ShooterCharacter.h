@@ -27,6 +27,7 @@ protected:
 	bool GetBeamEndLocation(const FVector& MuzzelSocketLocation, FVector& OutBeamLocation);
 	void ZoomCameraPressed();
 	void ZoomCameraReleased();
+	void CameraInterpZoom(float DeltaTime);
 
 public:	
 	// Called every frame
@@ -68,10 +69,15 @@ private:
 
 	float BaseCameraView{};
 	float ZoomCameraView{};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float ZoomCameraSpeed{};
+
+	float NormalCameraView{};
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
+	FORCEINLINE bool GetAimingStatus() const { return isAiming; }
 
 };
