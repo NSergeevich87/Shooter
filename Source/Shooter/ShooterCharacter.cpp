@@ -14,9 +14,21 @@
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
+	//Чувствительность смещения по осям при помощи мыши
+	MouseHipTurnSenceRate(1.0f),
+	MouseHipUpSenceRate(1.0f),
+	MouseAimTurnSenceRate(0.3f),
+	MouseAimUpSenceRate(0.3f),
+	//Чувствительность смещения поворота по осям при помощи стрелок или джойстика
 	TernRightRate(45.f),
 	TernUpRate(45.f),
 	isAiming(false),
+	//Чувствительность мыши при прицеливании и без
+	HipTernSenceRate(90.f),
+	HipUpSenceRate(90.f),
+	AimTernSenceRate(20.f),
+	AimUpSenceRate(20.f),
+	//Field of View settings
 	BaseCameraView(0.f),
 	ZoomCameraView(35.f),
 	NormalCameraView(0.f),
@@ -81,6 +93,34 @@ void AShooterCharacter::MoveRight(float Value)
 		const FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::Y) };
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AShooterCharacter::TurnMouseRight(float Rate)
+{
+	float CurrentSence{};
+	if (isAiming)
+	{
+		CurrentSence = MouseAimTurnSenceRate;
+	}
+	else
+	{
+		CurrentSence = MouseHipTurnSenceRate;
+	}
+	AddControllerYawInput(Rate * CurrentSence);
+}
+
+void AShooterCharacter::TurnMouseUp(float Rate)
+{
+	float CurrentSence{};
+	if (isAiming)
+	{
+		CurrentSence = MouseAimUpSenceRate;
+	}
+	else
+	{
+		CurrentSence = MouseHipUpSenceRate;
+	}
+	AddControllerPitchInput(Rate * CurrentSence);
 }
 
 void AShooterCharacter::TerningAtUp(float Rate)
@@ -238,12 +278,48 @@ void AShooterCharacter::CameraInterpZoom(float DeltaTime)
 	GetFollowCamera()->SetFieldOfView(NormalCameraView);
 }
 
+void AShooterCharacter::SetLookSence() //Метод чувствительности для джойстика или стрелок на клавиатуре
+{
+	if (isAiming)
+	{
+		TernRightRate = AimTernSenceRate;
+		TernUpRate = AimUpSenceRate;
+	}
+	else
+	{
+		TernRightRate = HipTernSenceRate;
+		TernUpRate = HipUpSenceRate;
+	}
+}
+
+void AShooterCharacter::CalculateCrosshairSpread(float DeltaTime)
+{
+	FVector2D WalkSpeedRange{ 0.f, 600.f };
+	FVector2D VelocityMultiplierRange{ 0.f, 1.f };
+	FVector Velocity{ GetVelocity() };
+	Velocity.Z = 0.f;
+
+	CrosshairSpeedFactor = FMath::GetMappedRangeValueClamped(
+		WalkSpeedRange,
+		VelocityMultiplierRange,
+		Velocity.Size()
+	);
+
+	CrosshairSpreadMultiplier = 0.5f + CrosshairSpeedFactor;
+
+	UE_LOG(LogTemp, Warning, TEXT("CrosshairSpeedFactor: %f"), CrosshairSpeedFactor);
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	CameraInterpZoom(DeltaTime);
+
+	CalculateCrosshairSpread(DeltaTime);
+
+	//SetLookSence(); //Метод чувствительности для джойстика или стрелок на клавиатуре
 }
 
 // Called to bind functionality to input
@@ -256,8 +332,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AShooterCharacter::MoveRight);
 	PlayerInputComponent->BindAxis(TEXT("TernUp"), this, &AShooterCharacter::TerningAtUp);
 	PlayerInputComponent->BindAxis(TEXT("TernRight"), this, &AShooterCharacter::TerningAtRight);
-	PlayerInputComponent->BindAxis(TEXT("MouseUp"), this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis(TEXT("MouseRight"), this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis(TEXT("MouseUp"), this, &AShooterCharacter::TurnMouseUp);
+	PlayerInputComponent->BindAxis(TEXT("MouseRight"), this, &AShooterCharacter::TurnMouseRight);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction(TEXT("MainFire"), IE_Pressed, this, &AShooterCharacter::FireWeapon);
