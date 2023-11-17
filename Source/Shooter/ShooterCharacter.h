@@ -124,4 +124,6 @@ public:
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool GetAimingStatus() const { return isAiming; }
 
+	UFUNCTION(BlueprintCallable)
+	float GetCrosshairSpreadMultiplier() const;
 };

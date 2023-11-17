@@ -341,3 +341,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction(TEXT("AimingButton"), IE_Released, this, &AShooterCharacter::ZoomCameraReleased);
 }
 
+float AShooterCharacter::GetCrosshairSpreadMultiplier() const
+{
+	return CrosshairSpreadMultiplier;
+}
+
