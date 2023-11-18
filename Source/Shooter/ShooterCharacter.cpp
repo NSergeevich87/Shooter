@@ -32,7 +32,14 @@ AShooterCharacter::AShooterCharacter() :
 	BaseCameraView(0.f),
 	ZoomCameraView(35.f),
 	NormalCameraView(0.f),
-	ZoomCameraSpeed(20.f)
+	ZoomCameraSpeed(20.f),
+	//Crosshair spread factors
+	CrosshairSpreadMultiplier(0.f),
+	CrosshairSpeedFactor(0.f),
+	CrosshairInAirFactor(0.f),
+	CrosshairAimFactor(0.f),
+	CrosshairShootFactor(0.f)
+
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -299,13 +306,38 @@ void AShooterCharacter::CalculateCrosshairSpread(float DeltaTime)
 	FVector Velocity{ GetVelocity() };
 	Velocity.Z = 0.f;
 
+	//Calculate Crosshair Spread when moving
 	CrosshairSpeedFactor = FMath::GetMappedRangeValueClamped(
 		WalkSpeedRange,
 		VelocityMultiplierRange,
 		Velocity.Size()
 	);
 
-	CrosshairSpreadMultiplier = 0.5f + CrosshairSpeedFactor;
+	//Calculate Crosshair spread when jumping
+	if (GetCharacterMovement()->IsFalling())
+	{
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
+	}
+	else
+	{
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 15.f);
+	}
+
+	//Calculate Crosshair spread when aiming
+	if (isAiming)
+	{
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.2f, DeltaTime, 1.f);
+	}
+	else
+	{
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
+	}
+
+	//Calculate Spread Multiplier
+	CrosshairSpreadMultiplier = 0.2f + 
+		CrosshairSpeedFactor +
+		CrosshairInAirFactor -
+		CrosshairAimFactor;
 
 	UE_LOG(LogTemp, Warning, TEXT("CrosshairSpeedFactor: %f"), CrosshairSpeedFactor);
 }
