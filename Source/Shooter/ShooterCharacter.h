@@ -26,6 +26,13 @@ protected:
 	void TerningAtUp(float Rate); //Метод чувствительности для джойстика или стрелок на клавиатуре
 	void TerningAtRight(float Rate); //Метод чувствительности для джойстика или стрелок на клавиатуре
 	void FireWeapon();
+	
+	void FireButtonPressed();
+	void FireButtonReleased();
+	void StartFireTimer();
+	UFUNCTION()
+	void AutoFireReset();
+
 	bool GetBeamEndLocation(const FVector& MuzzelSocketLocation, FVector& OutBeamLocation);
 	void ZoomCameraPressed();
 	void ZoomCameraReleased();
@@ -125,8 +132,13 @@ private:
 	float CrosshairShootFactor{};
 
 	float ShootingTime{};
-	FTimerHandle ShootingTimerHandle;
+	FTimerHandle CrosshairShootTimerHandle;
 	bool isFire{};
+
+	bool isFireButtonPressed{};
+	bool isShouldFire{};
+	float AutomaticFireRate{};
+	FTimerHandle ShootingTimerHandle;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

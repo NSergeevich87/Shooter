@@ -41,7 +41,11 @@ AShooterCharacter::AShooterCharacter() :
 	CrosshairShootFactor(0.f),
 	//Variables of shooting factor
 	isFire(false),
-	ShootingTime(0.05f)
+	ShootingTime(0.05f),
+	//Автоматическая стрельба
+	isShouldFire(true),
+	isFireButtonPressed(false),
+	AutomaticFireRate(0.2f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -144,6 +148,8 @@ void AShooterCharacter::TerningAtRight(float Rate)
 
 void AShooterCharacter::FireWeapon()
 {
+	isFireButtonPressed = true;
+
 	if (FireSound) UGameplayStatics::PlaySound2D(this, FireSound);
 
 	const USkeletalMeshSocket* ParticleShotSocket = GetMesh()->GetSocketByName(TEXT("ParticleFlash"));
@@ -189,6 +195,36 @@ void AShooterCharacter::FireWeapon()
 
 	//Start bullet fire timer for crosshairs
 	isCrosshairShooting();
+}
+
+void AShooterCharacter::StartFireTimer()
+{
+	if (isShouldFire)
+	{
+		FireWeapon();
+		isShouldFire = false;
+		GetWorldTimerManager().SetTimer(ShootingTimerHandle, this, &AShooterCharacter::AutoFireReset, AutomaticFireRate);
+	}
+}
+
+void AShooterCharacter::AutoFireReset()
+{
+	isShouldFire = true;
+	if (isFireButtonPressed)
+	{
+		StartFireTimer();
+	}
+}
+
+void AShooterCharacter::FireButtonPressed()
+{
+	isFireButtonPressed = true;
+	StartFireTimer();
+}
+
+void AShooterCharacter::FireButtonReleased()
+{
+	isFireButtonPressed = false;
 }
 
 bool AShooterCharacter::GetBeamEndLocation(
@@ -363,7 +399,7 @@ void AShooterCharacter::isCrosshairShooting()
 	isFire = true;
 
 	GetWorldTimerManager().SetTimer(
-		ShootingTimerHandle, 
+		CrosshairShootTimerHandle,
 		this, 
 		&AShooterCharacter::notCrosshairShooting, 
 		ShootingTime);
@@ -400,7 +436,10 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(TEXT("MouseRight"), this, &AShooterCharacter::TurnMouseRight);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
-	PlayerInputComponent->BindAction(TEXT("MainFire"), IE_Pressed, this, &AShooterCharacter::FireWeapon);
+
+	PlayerInputComponent->BindAction(TEXT("MainFire"), IE_Pressed, this, &AShooterCharacter::FireButtonPressed);
+	PlayerInputComponent->BindAction(TEXT("MainFire"), IE_Released, this, &AShooterCharacter::FireButtonReleased);
+
 	PlayerInputComponent->BindAction(TEXT("AimingButton"), IE_Pressed, this, &AShooterCharacter::ZoomCameraPressed);
 	PlayerInputComponent->BindAction(TEXT("AimingButton"), IE_Released, this, &AShooterCharacter::ZoomCameraReleased);
 }
