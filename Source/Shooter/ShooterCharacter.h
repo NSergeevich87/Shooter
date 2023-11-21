@@ -32,6 +32,11 @@ protected:
 	void CameraInterpZoom(float DeltaTime);
 	void SetLookSence(); //Метод чувствительности для джойстика или стрелок на клавиатуре
 	void CalculateCrosshairSpread(float DeltaTime); //Метод расчета кроссхаир спреда
+	//Calculate methods of CrosshairShootFactor
+	void isCrosshairShooting();
+	UFUNCTION()
+	void notCrosshairShooting();
+
 
 public:	
 	// Called every frame
@@ -118,6 +123,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
 	float CrosshairShootFactor{};
+
+	float ShootingTime{};
+	FTimerHandle ShootingTimerHandle;
+	bool isFire{};
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

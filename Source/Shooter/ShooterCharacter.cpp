@@ -38,8 +38,10 @@ AShooterCharacter::AShooterCharacter() :
 	CrosshairSpeedFactor(0.f),
 	CrosshairInAirFactor(0.f),
 	CrosshairAimFactor(0.f),
-	CrosshairShootFactor(0.f)
-
+	CrosshairShootFactor(0.f),
+	//Variables of shooting factor
+	isFire(false),
+	ShootingTime(0.05f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -184,6 +186,9 @@ void AShooterCharacter::FireWeapon()
 		AnimInstance->Montage_Play(WeaponFire);
 		AnimInstance->Montage_JumpToSection(FName("StartFire"));
 	}
+
+	//Start bullet fire timer for crosshairs
+	isCrosshairShooting();
 }
 
 bool AShooterCharacter::GetBeamEndLocation(
@@ -197,9 +202,9 @@ bool AShooterCharacter::GetBeamEndLocation(
 		GEngine->GameViewport->GetViewportSize(ScreenSize);
 	}
 	//Get screen space location of crosshairs
-	FVector2D CrosshairLocation{ ScreenSize.X / 2.f, ScreenSize.Y / 2.f };
-	CrosshairLocation.Y -= 85;
-	CrosshairLocation.X += 35;
+	FVector2D CrosshairLocation( ScreenSize.X / 2.f, ScreenSize.Y / 2.f );
+	//CrosshairLocation.Y -= 85;
+	//CrosshairLocation.X += 35;
 	FVector CrosshairWorldPosition;
 	FVector CrosshairWorldDirection;
 	//Get world position and direction
@@ -333,13 +338,40 @@ void AShooterCharacter::CalculateCrosshairSpread(float DeltaTime)
 		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
 	}
 
+	//Calculate crosshair spread when shooting
+	if (isFire)
+	{
+		CrosshairShootFactor = FMath::FInterpTo(CrosshairShootFactor, 0.3f, DeltaTime, 60.f);
+	}
+	else
+	{
+		CrosshairShootFactor = FMath::FInterpTo(CrosshairShootFactor, 0.f, DeltaTime, 60.f);
+	}
+
 	//Calculate Spread Multiplier
 	CrosshairSpreadMultiplier = 0.2f + 
 		CrosshairSpeedFactor +
 		CrosshairInAirFactor -
-		CrosshairAimFactor;
+		CrosshairAimFactor +
+		CrosshairShootFactor;
 
 	UE_LOG(LogTemp, Warning, TEXT("CrosshairSpeedFactor: %f"), CrosshairSpeedFactor);
+}
+
+void AShooterCharacter::isCrosshairShooting()
+{
+	isFire = true;
+
+	GetWorldTimerManager().SetTimer(
+		ShootingTimerHandle, 
+		this, 
+		&AShooterCharacter::notCrosshairShooting, 
+		ShootingTime);
+}
+
+void AShooterCharacter::notCrosshairShooting()
+{
+	isFire = false;
 }
 
 // Called every frame
