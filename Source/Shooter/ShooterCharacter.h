@@ -44,6 +44,8 @@ protected:
 	UFUNCTION()
 	void notCrosshairShooting();
 
+	//метод для получения информации с чем пересекается кроссхаир
+	bool GetInfoCrosshair(FHitResult &hitResult, FVector &OutHitLocation);
 
 public:	
 	// Called every frame

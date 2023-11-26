@@ -10,6 +10,8 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Item.h"
+#include "Components/WidgetComponent.h"
 
 
 // Sets default values
@@ -231,65 +233,40 @@ bool AShooterCharacter::GetBeamEndLocation(
 	const FVector& MuzzelSocketLocation, 
 	FVector& OutBeamLocation)
 {
-	//Get current size of the screen
-	FVector2D ScreenSize;
-	if (GEngine && GEngine->GameViewport)
+	//Check for crosshair trace hit
+	FHitResult CrosshairHitResult;
+	bool isCrosshairHit = GetInfoCrosshair(CrosshairHitResult, OutBeamLocation);
+
+	if (isCrosshairHit)
 	{
-		GEngine->GameViewport->GetViewportSize(ScreenSize);
+		//tentative beam location - stell need to trace from gun
+		OutBeamLocation = CrosshairHitResult.Location;
 	}
-	//Get screen space location of crosshairs
-	FVector2D CrosshairLocation( ScreenSize.X / 2.f, ScreenSize.Y / 2.f );
-	//CrosshairLocation.Y -= 85;
-	//CrosshairLocation.X += 35;
-	FVector CrosshairWorldPosition;
-	FVector CrosshairWorldDirection;
-	//Get world position and direction
-	bool isDeprojectScreen = UGameplayStatics::DeprojectScreenToWorld(
-		UGameplayStatics::GetPlayerController(this, 0),
-		CrosshairLocation,
-		CrosshairWorldPosition,
-		CrosshairWorldDirection
-	);
-
-	if (isDeprojectScreen)
+	else
 	{
-		FHitResult HitResult;
-		const FVector Start = CrosshairWorldPosition;
-		const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * 50'000.f;
-		// Set beam end point to line trace and point
-		OutBeamLocation = End;
+		//outveamlocation is the end location for the line trace
+	}
 
-		// Trace outward from crosshairs world location
-		GetWorld()->LineTraceSingleByChannel(
-			HitResult,
-			Start,
-			End,
-			ECollisionChannel::ECC_Visibility
-		);
-		if (HitResult.bBlockingHit)
-		{
-			OutBeamLocation = HitResult.Location;
-		}
+	// Perform a second trace, this time from the gun barrel
+	FHitResult ObjectHit;
+	const FVector StartObjectHit{ MuzzelSocketLocation };
+	const FVector StartToEnd{ OutBeamLocation - MuzzelSocketLocation };
+	const FVector EndObjectHit{ MuzzelSocketLocation + StartToEnd * 1.25f };
+	GetWorld()->LineTraceSingleByChannel(
+		ObjectHit,
+		StartObjectHit,
+		EndObjectHit,
+		ECollisionChannel::ECC_Visibility);
 
-		// Perform a second trace, this time from the gun barrel
-		FHitResult ObjectHit;
-		FVector StartObjectHit{ MuzzelSocketLocation };
-		FVector EndObjectHit{ OutBeamLocation };
-		GetWorld()->LineTraceSingleByChannel(
-			ObjectHit,
-			StartObjectHit,
-			EndObjectHit,
-			ECollisionChannel::ECC_Visibility);
-
-		if (ObjectHit.bBlockingHit)
-		{
-			OutBeamLocation = ObjectHit.Location;
-		}
-
+	if (ObjectHit.bBlockingHit)
+	{
+		//ObjectHit.Location = OutBeamLocation;
+		OutBeamLocation = ObjectHit.Location;
 		return true;
 	}
 
 	return false;
+
 }
 
 void AShooterCharacter::ZoomCameraPressed()
@@ -410,6 +387,42 @@ void AShooterCharacter::notCrosshairShooting()
 	isFire = false;
 }
 
+bool AShooterCharacter::GetInfoCrosshair(FHitResult& hitResult, FVector& OutHitLocation)
+{
+	//Получаем размер экрана
+	FVector2D ScreenSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ScreenSize);
+	}
+	//Найдем расположение кроссхаира
+	FVector2D CrosshairLocation (ScreenSize.X / 2.f, ScreenSize.Y / 2.f);
+	//Объявим два вектора расположения и направления кроссхаира на сцене (world)
+	FVector CrosshairWorldLocation;
+	FVector CrosshairWorldDirection;
+	//Получим значения векторов используя метод DeprojectScreenToWorld()
+	bool isDeprojectScreen = UGameplayStatics::DeprojectScreenToWorld(
+		UGameplayStatics::GetPlayerController(this, 0),
+		CrosshairLocation,
+		CrosshairWorldLocation,
+		CrosshairWorldDirection
+	);
+	//Если DeprojectScreen сработал получим направление
+	if (isDeprojectScreen)
+	{
+		const FVector Start{ CrosshairWorldLocation };
+		const FVector End{ Start + CrosshairWorldDirection * 50'000.f };
+		OutHitLocation = End;
+		GetWorld()->LineTraceSingleByChannel(hitResult, Start, End, ECollisionChannel::ECC_Visibility);
+		if (hitResult.bBlockingHit)
+		{
+			OutHitLocation = hitResult.Location;
+			return true;
+		}
+	}
+	return false;
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -420,6 +433,18 @@ void AShooterCharacter::Tick(float DeltaTime)
 	CalculateCrosshairSpread(DeltaTime);
 
 	//SetLookSence(); //Метод чувствительности для джойстика или стрелок на клавиатуре
+
+	FHitResult ItemTraceResult;
+	FVector HitLocation;
+	GetInfoCrosshair(ItemTraceResult, HitLocation);
+	if (ItemTraceResult.bBlockingHit)
+	{
+		AItem* HitItem = Cast<AItem>(ItemTraceResult.GetActor());
+		if (HitItem && HitItem->GetPickupComponent())
+		{
+			HitItem->GetPickupComponent()->SetVisibility(true);
+		}
+	}
 }
 
 // Called to bind functionality to input
