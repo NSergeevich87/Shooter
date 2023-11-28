@@ -47,6 +47,8 @@ protected:
 	//метод для получения информации с чем пересекается кроссхаир
 	bool GetInfoCrosshair(FHitResult &hitResult, FVector &OutHitLocation);
 
+	void TraceForItems();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -142,6 +144,9 @@ private:
 	float AutomaticFireRate{};
 	FTimerHandle ShootingTimerHandle;
 
+	bool isShouldTraceForItems{};
+	int8 OverlapedItemCount;
+
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
@@ -149,4 +154,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetCrosshairSpreadMultiplier() const;
+
+	FORCEINLINE int8 GetOverlapedItemCount() const { return OverlapedItemCount; }
+	void IncrementOverlapedItemCount(int8 Amount);
 };

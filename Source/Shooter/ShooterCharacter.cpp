@@ -47,7 +47,9 @@ AShooterCharacter::AShooterCharacter() :
 	//Автоматическая стрельба
 	isShouldFire(true),
 	isFireButtonPressed(false),
-	AutomaticFireRate(0.2f)
+	AutomaticFireRate(0.2f),
+	//Item trace variables
+	isShouldTraceForItems(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -423,6 +425,24 @@ bool AShooterCharacter::GetInfoCrosshair(FHitResult& hitResult, FVector& OutHitL
 	return false;
 }
 
+void AShooterCharacter::TraceForItems()
+{
+	if (isShouldTraceForItems)
+	{
+		FHitResult ItemTraceResult;
+		FVector HitLocation;
+		GetInfoCrosshair(ItemTraceResult, HitLocation);
+		if (ItemTraceResult.bBlockingHit)
+		{
+			AItem* HitItem = Cast<AItem>(ItemTraceResult.GetActor());
+			if (HitItem && HitItem->GetPickupComponent())
+			{
+				HitItem->GetPickupComponent()->SetVisibility(true);
+			}
+		}
+	}
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -434,17 +454,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 	//SetLookSence(); //Метод чувствительности для джойстика или стрелок на клавиатуре
 
-	FHitResult ItemTraceResult;
-	FVector HitLocation;
-	GetInfoCrosshair(ItemTraceResult, HitLocation);
-	if (ItemTraceResult.bBlockingHit)
-	{
-		AItem* HitItem = Cast<AItem>(ItemTraceResult.GetActor());
-		if (HitItem && HitItem->GetPickupComponent())
-		{
-			HitItem->GetPickupComponent()->SetVisibility(true);
-		}
-	}
+	TraceForItems();
 }
 
 // Called to bind functionality to input
@@ -472,5 +482,19 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 float AShooterCharacter::GetCrosshairSpreadMultiplier() const
 {
 	return CrosshairSpreadMultiplier;
+}
+
+void AShooterCharacter::IncrementOverlapedItemCount(int8 Amount)
+{
+	if (OverlapedItemCount + Amount <= 0)
+	{
+		OverlapedItemCount = 0;
+		isShouldTraceForItems = false;
+	}
+	else
+	{
+		OverlapedItemCount += Amount;
+		isShouldTraceForItems = true;
+	}
 }
 
