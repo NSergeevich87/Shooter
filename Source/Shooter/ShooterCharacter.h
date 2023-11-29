@@ -147,6 +147,9 @@ private:
 	bool isShouldTraceForItems{};
 	int8 OverlapedItemCount;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Items, meta = (AllowPrivateAccess = "true"))
+	class AItem* LastFrameTraceHitItem;
+
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }

@@ -8,7 +8,7 @@
 #include "ShooterCharacter.h"
 
 // Sets default values
-AItem::AItem()
+AItem::AItem() : ItemName(FString("Default Name"))
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -69,10 +69,6 @@ void AItem::OnSphereEndOverlap(
 		if (ShooterCharacter)
 		{
 			ShooterCharacter->IncrementOverlapedItemCount(-1);
-			if (ShooterCharacter->GetOverlapedItemCount() == 0)
-			{
-				PickUpComponent->SetVisibility(false);
-			}
 		}
 	}
 }

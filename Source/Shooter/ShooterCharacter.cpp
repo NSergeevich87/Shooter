@@ -439,7 +439,20 @@ void AShooterCharacter::TraceForItems()
 			{
 				HitItem->GetPickupComponent()->SetVisibility(true);
 			}
+			if (LastFrameTraceHitItem)
+			{
+				if (LastFrameTraceHitItem != HitItem)
+				{
+					LastFrameTraceHitItem->GetPickupComponent()->SetVisibility(false);
+				}
+			}
+
+			LastFrameTraceHitItem = HitItem;
 		}
+	}
+	else if (LastFrameTraceHitItem)
+	{
+		LastFrameTraceHitItem->GetPickupComponent()->SetVisibility(false);
 	}
 }
 
