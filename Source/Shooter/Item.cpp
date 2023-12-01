@@ -8,7 +8,7 @@
 #include "ShooterCharacter.h"
 
 // Sets default values
-AItem::AItem() : ItemName(FString("Default Name"))
+AItem::AItem() : ItemName(FString("Default Name")), ItemCount(0), itemRarity(EItemRarity::EIR_Common)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,12 +28,54 @@ AItem::AItem() : ItemName(FString("Default Name"))
 	sphereComponent->SetupAttachment(GetRootComponent());
 }
 
+void AItem::SetActiveStars()
+{
+	for (int32 i = 0; i <= 5; i++)
+	{
+		ActiveStars.Add(false);
+	}
+
+	switch (itemRarity)
+	{
+	case EItemRarity::EIR_Damaged:
+		ActiveStars[1] = true;
+		break;
+	case EItemRarity::EIR_Common:
+		ActiveStars[1] = true;
+		ActiveStars[2] = true;
+		break;
+	case EItemRarity::EIR_Uncommon:
+		ActiveStars[1] = true;
+		ActiveStars[2] = true;
+		ActiveStars[3] = true;
+		break;
+	case EItemRarity::EIR_Rare:
+		ActiveStars[1] = true;
+		ActiveStars[2] = true;
+		ActiveStars[3] = true;
+		ActiveStars[4] = true;
+		break;
+	case EItemRarity::EIR_Legendary:
+		ActiveStars[1] = true;
+		ActiveStars[2] = true;
+		ActiveStars[3] = true;
+		ActiveStars[4] = true;
+		ActiveStars[5] = true;
+		break;
+	}
+}
+
 // Called when the game starts or when spawned
 void AItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PickUpComponent->SetVisibility(false);
+	if (PickUpComponent)
+	{
+		PickUpComponent->SetVisibility(false);
+	}
+	
+	SetActiveStars();
 
 	sphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereBeginOverlap);
 	sphereComponent->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereEndOverlap);
