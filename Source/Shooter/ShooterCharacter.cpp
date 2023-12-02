@@ -12,6 +12,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Item.h"
 #include "Components/WidgetComponent.h"
+#include "Weapon.h"
 
 
 // Sets default values
@@ -80,6 +81,8 @@ AShooterCharacter::AShooterCharacter() :
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SpawnDefaultWeapon();
 
 	if (FollowCamera)
 	{
@@ -453,6 +456,22 @@ void AShooterCharacter::TraceForItems()
 	else if (LastFrameTraceHitItem)
 	{
 		LastFrameTraceHitItem->GetPickupComponent()->SetVisibility(false);
+	}
+}
+
+void AShooterCharacter::SpawnDefaultWeapon()
+{
+	if (DefaultWeapon)
+	{
+		AWeapon* SpawnedWepon = GetWorld()->SpawnActor<AWeapon>(DefaultWeapon);
+
+		const USkeletalMeshSocket* WeaponSocket = GetMesh()->GetSocketByName(FName("RightHandSocket"));
+		if (WeaponSocket)
+		{
+			WeaponSocket->AttachActor(SpawnedWepon, GetMesh());
+		}
+
+		EquiptedWeapon = SpawnedWepon;
 	}
 }
 

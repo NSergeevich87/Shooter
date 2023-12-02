@@ -75,7 +75,7 @@ void AItem::BeginPlay()
 		PickUpComponent->SetVisibility(false);
 	}
 	
-	SetActiveStars();
+	SetActiveStars();     
 
 	sphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereBeginOverlap);
 	sphereComponent->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereEndOverlap);
