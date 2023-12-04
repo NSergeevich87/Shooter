@@ -49,7 +49,9 @@ protected:
 
 	void TraceForItems();
 
-	void SpawnDefaultWeapon();
+	class AWeapon* SpawnDefaultWeapon();
+
+	void EquipWeapon(AWeapon* EquipWeapon);
 
 public:	
 	// Called every frame
@@ -153,7 +155,7 @@ private:
 	class AItem* LastFrameTraceHitItem;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Combat, meta = (AllowPrivateAccess = "true"))
-	class AWeapon* EquiptedWeapon;
+	AWeapon* EquiptedWeapon;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = Combat, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AWeapon> DefaultWeapon;

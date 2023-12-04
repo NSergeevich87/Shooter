@@ -13,6 +13,8 @@
 #include "Item.h"
 #include "Components/WidgetComponent.h"
 #include "Weapon.h"
+#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 
 
 // Sets default values
@@ -82,7 +84,8 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SpawnDefaultWeapon();
+	EquipWeapon(SpawnDefaultWeapon());
+	
 
 	if (FollowCamera)
 	{
@@ -459,19 +462,34 @@ void AShooterCharacter::TraceForItems()
 	}
 }
 
-void AShooterCharacter::SpawnDefaultWeapon()
+AWeapon* AShooterCharacter::SpawnDefaultWeapon()
 {
 	if (DefaultWeapon)
 	{
 		AWeapon* SpawnedWepon = GetWorld()->SpawnActor<AWeapon>(DefaultWeapon);
+		return SpawnedWepon;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
 
-		const USkeletalMeshSocket* WeaponSocket = GetMesh()->GetSocketByName(FName("RightHandSocket"));
-		if (WeaponSocket)
+void AShooterCharacter::EquipWeapon(AWeapon* EquipWeapon)
+{
+	if (EquipWeapon)
+	{
+		EquipWeapon->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		EquipWeapon->GetSphereComponeent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+
+		const USkeletalMeshSocket* WeaponSlot = GetMesh()->GetSocketByName(FName("RightHandsocket"));
+
+		if (WeaponSlot)
 		{
-			WeaponSocket->AttachActor(SpawnedWepon, GetMesh());
+			WeaponSlot->AttachActor(EquipWeapon, GetMesh());
 		}
 
-		EquiptedWeapon = SpawnedWepon;
+		EquiptedWeapon = EquipWeapon;
 	}
 }
 

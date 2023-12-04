@@ -80,4 +80,6 @@ private:
 
 public:
 	FORCEINLINE UWidgetComponent* GetPickupComponent() const { return PickUpComponent; }
+	FORCEINLINE USphereComponent* GetSphereComponeent() const { return sphereComponent; }
+	FORCEINLINE UBoxComponent* GetCollisionBox() const { return ItemCollisionBox; }
 };
