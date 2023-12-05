@@ -479,9 +479,6 @@ void AShooterCharacter::EquipWeapon(AWeapon* EquipWeapon)
 {
 	if (EquipWeapon)
 	{
-		EquipWeapon->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		EquipWeapon->GetSphereComponeent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-
 		const USkeletalMeshSocket* WeaponSlot = GetMesh()->GetSocketByName(FName("RightHandsocket"));
 
 		if (WeaponSlot)
@@ -490,6 +487,7 @@ void AShooterCharacter::EquipWeapon(AWeapon* EquipWeapon)
 		}
 
 		EquiptedWeapon = EquipWeapon;
+		EquiptedWeapon->SetItemState(EItemState::EIS_Equipped);
 	}
 }
 

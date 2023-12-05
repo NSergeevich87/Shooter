@@ -8,7 +8,7 @@
 #include "ShooterCharacter.h"
 
 // Sets default values
-AItem::AItem() : ItemName(FString("Default Name")), ItemCount(0), itemRarity(EItemRarity::EIR_Common)
+AItem::AItem() : ItemName(FString("Default Name")), ItemCount(0), itemRarity(EItemRarity::EIR_Common), itemState(EItemState::EIS_Prickup)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -34,7 +34,7 @@ void AItem::SetActiveStars()
 	{
 		ActiveStars.Add(false);
 	}
-
+	 
 	switch (itemRarity)
 	{
 	case EItemRarity::EIR_Damaged:
@@ -65,6 +65,48 @@ void AItem::SetActiveStars()
 	}
 }
 
+void AItem::SetItemProperties(EItemState State)
+{
+	switch (State)
+	{
+	case EItemState::EIS_Prickup:
+		PickUpComponent->SetSimulatePhysics(false);
+		PickUpComponent->SetVisibility(true);
+		PickUpComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		PickUpComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		sphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+		sphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+		ItemCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+		ItemCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EItemState::EIS_EquipInterping:
+		break;
+	case EItemState::EIS_PickedUp:
+		break;
+	case EItemState::EIS_Equipped:
+		PickUpComponent->SetSimulatePhysics(false);
+		PickUpComponent->SetVisibility(true);
+		PickUpComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		PickUpComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		sphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		sphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		ItemCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EItemState::EIS_Falling:
+		break;
+	case EItemState::EIS_MAX:
+		break;
+	default:
+		break;
+	}
+}
+
 // Called when the game starts or when spawned
 void AItem::BeginPlay()
 {
@@ -79,6 +121,9 @@ void AItem::BeginPlay()
 
 	sphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereBeginOverlap);
 	sphereComponent->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereEndOverlap);
+
+	//Set item properties based on ItemState
+	SetItemProperties(itemState);
 }
 
 void AItem::OnSphereBeginOverlap(
@@ -120,5 +165,11 @@ void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AItem::SetItemState(EItemState newItemState)
+{
+	itemState = newItemState;
+	SetItemProperties(newItemState);
 }
 
