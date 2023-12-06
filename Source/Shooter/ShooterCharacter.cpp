@@ -491,6 +491,24 @@ void AShooterCharacter::EquipWeapon(AWeapon* EquipWeapon)
 	}
 }
 
+void AShooterCharacter::DropWeapon()
+{
+	if (EquiptedWeapon)
+	{
+		FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+		EquiptedWeapon->GetSkeletalMesh()->DetachFromComponent(DetachmentTransformRules);
+	}
+}
+
+void AShooterCharacter::SelectButtonPressed()
+{
+	DropWeapon();  
+}
+
+void AShooterCharacter::SelectButtonReleased()
+{
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -525,6 +543,9 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction(TEXT("AimingButton"), IE_Pressed, this, &AShooterCharacter::ZoomCameraPressed);
 	PlayerInputComponent->BindAction(TEXT("AimingButton"), IE_Released, this, &AShooterCharacter::ZoomCameraReleased);
+
+	PlayerInputComponent->BindAction(TEXT("Select"), IE_Pressed, this, &AShooterCharacter::SelectButtonPressed);
+	PlayerInputComponent->BindAction(TEXT("Select"), IE_Released, this, &AShooterCharacter::SelectButtonReleased);
 }
 
 float AShooterCharacter::GetCrosshairSpreadMultiplier() const

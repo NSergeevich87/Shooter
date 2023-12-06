@@ -8,7 +8,7 @@
 #include "ShooterCharacter.h"
 
 // Sets default values
-AItem::AItem() : ItemName(FString("Default Name")), ItemCount(0), itemRarity(EItemRarity::EIR_Common), itemState(EItemState::EIS_Prickup)
+AItem::AItem() : ItemName(FString("Default Name")), ItemCount(0), itemRarity(EItemRarity::EIR_Common), itemState(EItemState::EIS_Pickup)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -69,11 +69,11 @@ void AItem::SetItemProperties(EItemState State)
 {
 	switch (State)
 	{
-	case EItemState::EIS_Prickup:
-		PickUpComponent->SetSimulatePhysics(false);
-		PickUpComponent->SetVisibility(true);
-		PickUpComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		PickUpComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	case EItemState::EIS_Pickup:
+		ItemSkeletalMesh->SetSimulatePhysics(false);
+		ItemSkeletalMesh->SetVisibility(true);
+		ItemSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		sphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 		sphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -87,10 +87,10 @@ void AItem::SetItemProperties(EItemState State)
 	case EItemState::EIS_PickedUp:
 		break;
 	case EItemState::EIS_Equipped:
-		PickUpComponent->SetSimulatePhysics(false);
-		PickUpComponent->SetVisibility(true);
-		PickUpComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		PickUpComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ItemSkeletalMesh->SetSimulatePhysics(false);
+		ItemSkeletalMesh->SetVisibility(true);
+		ItemSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		sphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		sphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);

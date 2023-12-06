@@ -21,7 +21,7 @@ enum class EItemRarity : uint8
 UENUM(BlueprintType)
 enum class EItemState : uint8
 {
-	EIS_Prickup UMETA(DisplayName = "Pickup"),
+	EIS_Pickup UMETA(DisplayName = "Pickup"),
 	EIS_EquipInterping UMETA(DisplayName = "EquipInterping"),
 	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
 	EIS_Equipped UMETA(DisplayName = "Equipped"),
@@ -101,4 +101,5 @@ public:
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return ItemCollisionBox; }
 	FORCEINLINE EItemState GetItemState() const { return itemState; }
 	void SetItemState(EItemState newItemState);
+	FORCEINLINE USkeletalMeshComponent* GetSkeletalMesh() const { return ItemSkeletalMesh; }
 };
