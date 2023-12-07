@@ -71,6 +71,7 @@ void AItem::SetItemProperties(EItemState State)
 	{
 	case EItemState::EIS_Pickup:
 		ItemSkeletalMesh->SetSimulatePhysics(false);
+		ItemSkeletalMesh->SetEnableGravity(false);
 		ItemSkeletalMesh->SetVisibility(true);
 		ItemSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -88,6 +89,7 @@ void AItem::SetItemProperties(EItemState State)
 		break;
 	case EItemState::EIS_Equipped:
 		ItemSkeletalMesh->SetSimulatePhysics(false);
+		ItemSkeletalMesh->SetEnableGravity(false);
 		ItemSkeletalMesh->SetVisibility(true);
 		ItemSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -99,6 +101,17 @@ void AItem::SetItemProperties(EItemState State)
 		ItemCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	case EItemState::EIS_Falling:
+		ItemSkeletalMesh->SetSimulatePhysics(true);
+		ItemSkeletalMesh->SetEnableGravity(true);
+		ItemSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		ItemSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemSkeletalMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+
+		sphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		sphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		ItemCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	case EItemState::EIS_MAX:
 		break;
