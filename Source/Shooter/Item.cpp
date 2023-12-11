@@ -88,6 +88,8 @@ void AItem::SetItemProperties(EItemState State)
 	case EItemState::EIS_PickedUp:
 		break;
 	case EItemState::EIS_Equipped:
+		PickUpComponent->SetVisibility(false);
+
 		ItemSkeletalMesh->SetSimulatePhysics(false);
 		ItemSkeletalMesh->SetEnableGravity(false);
 		ItemSkeletalMesh->SetVisibility(true);

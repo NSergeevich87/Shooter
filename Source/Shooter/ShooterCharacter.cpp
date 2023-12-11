@@ -52,7 +52,10 @@ AShooterCharacter::AShooterCharacter() :
 	isFireButtonPressed(false),
 	AutomaticFireRate(0.2f),
 	//Item trace variables
-	isShouldTraceForItems(false)
+	isShouldTraceForItems(false),
+	//CameraInterp Variables
+	CameraInterpDistance(250.f),
+	CameraInterpElevation(65.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -440,7 +443,7 @@ void AShooterCharacter::TraceForItems()
 		GetInfoCrosshair(ItemTraceResult, HitLocation);
 		if (ItemTraceResult.bBlockingHit)
 		{
-			AItem* HitItem = Cast<AItem>(ItemTraceResult.GetActor());
+			HitItem = Cast<AItem>(ItemTraceResult.GetActor());
 			if (HitItem && HitItem->GetPickupComponent())
 			{
 				HitItem->GetPickupComponent()->SetVisibility(true);
@@ -505,11 +508,31 @@ void AShooterCharacter::DropWeapon()
 
 void AShooterCharacter::SelectButtonPressed()
 {
-	DropWeapon();  
+	if (HitItem)
+	{
+		auto SwapW = Cast<AWeapon>(HitItem);
+		SwapWeapon(SwapW);
+	}
 }
 
 void AShooterCharacter::SelectButtonReleased()
 {
+}
+
+void AShooterCharacter::SwapWeapon(AWeapon* WeaponToSwap)
+{
+	DropWeapon();
+	EquipWeapon(WeaponToSwap);
+	HitItem = nullptr;
+	LastFrameTraceHitItem = nullptr;
+}
+
+FVector AShooterCharacter::GetCameraInterpLocation()
+{
+	FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
+	FVector CameraForward{ FollowCamera->GetForwardVector() };
+	//cameralocation + forvardVector * addfv + {0, 0, adduv};
+	return CameraWorldLocation + CameraForward * CameraInterpDistance + FVector{ 0.f, 0.f, CameraInterpElevation };
 }
 
 // Called every frame

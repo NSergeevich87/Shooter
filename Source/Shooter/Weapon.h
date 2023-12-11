@@ -15,18 +15,15 @@ class SHOOTER_API AWeapon : public AItem
 	GENERATED_BODY()
 	
 public:
-	virtual void Tick(float DeltaTime) override;
 	AWeapon();
+	virtual void Tick(float DeltaTime) override;
+
+	void ThrowWeapon();
 
 private:
-	FTimerHandle TrowWeaponTimer;
-	float TrowWeaponTime;
+	FTimerHandle ThrowWeaponTimer;
+	float ThrowWeaponTime;
 	bool bFalling;
 
-protected:
 	void StopFalling();
-
-public:
-	// Add an impulse to the Weapon
-	void ThrowWeapon();
 };

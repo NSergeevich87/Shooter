@@ -57,6 +57,8 @@ protected:
 	void SelectButtonPressed();
 	void SelectButtonReleased();
 
+	void SwapWeapon(AWeapon* WeaponToSwap);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -164,6 +166,18 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = Combat, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AWeapon> DefaultWeapon;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = Combat, meta = (AllowPrivateAccess = "true"))
+	AItem* HitItem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Items, meta = (AllowPrivateAccess = "true"))
+	float CameraInterpDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Items, meta = (AllowPrivateAccess = "true"))
+	float CameraInterpElevation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = Items, meta = (AllowPrivateAccess = "true"))
+	class UCurveFloat* ItemZCurve;
+
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
@@ -174,4 +188,6 @@ public:
 
 	FORCEINLINE int8 GetOverlapedItemCount() const { return OverlapedItemCount; }
 	void IncrementOverlapedItemCount(int8 Amount);
+
+	FVector GetCameraInterpLocation();
 };
