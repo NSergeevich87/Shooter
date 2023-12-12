@@ -63,6 +63,9 @@ protected:
 
 	void SetItemProperties(EItemState State);
 
+	void FinishInterping();
+	void ItemInterp(float DeltaTime);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -95,6 +98,26 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	EItemState itemState;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UCurveFloat* ItemZCurve;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FVector ItemInterpStartLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FVector CameraTargetLocation;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	bool bInterping;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float ZCurveTime;
+
+	FTimerHandle ItemInterpTimer;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class AShooterCharacter* Character;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupComponent() const { return PickUpComponent; }
 	FORCEINLINE USphereComponent* GetSphereComponeent() const { return sphereComponent; }
@@ -102,4 +125,6 @@ public:
 	FORCEINLINE EItemState GetItemState() const { return itemState; }
 	void SetItemState(EItemState newItemState);
 	FORCEINLINE USkeletalMeshComponent* GetSkeletalMesh() const { return ItemSkeletalMesh; }
+
+	void StartItemCurve(AShooterCharacter* ch);
 };

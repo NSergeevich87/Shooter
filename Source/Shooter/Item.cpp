@@ -8,7 +8,16 @@
 #include "ShooterCharacter.h"
 
 // Sets default values
-AItem::AItem() : ItemName(FString("Default Name")), ItemCount(0), itemRarity(EItemRarity::EIR_Common), itemState(EItemState::EIS_Pickup)
+AItem::AItem() : 
+	ItemName(FString("Default Name")), 
+	ItemCount(0), 
+	itemRarity(EItemRarity::EIR_Common), 
+	itemState(EItemState::EIS_Pickup),
+	//Item interp move variables
+	bInterping(false),
+	ItemInterpStartLocation(FVector{0.f}),
+	CameraTargetLocation(FVector{0.f}),
+	ZCurveTime(0.7f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -84,6 +93,19 @@ void AItem::SetItemProperties(EItemState State)
 		ItemCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EItemState::EIS_EquipInterping:
+		PickUpComponent->SetVisibility(false);
+
+		ItemSkeletalMesh->SetSimulatePhysics(false);
+		ItemSkeletalMesh->SetEnableGravity(false);
+		ItemSkeletalMesh->SetVisibility(true);
+		ItemSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		sphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		sphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		ItemCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	case EItemState::EIS_PickedUp:
 		break;
@@ -180,6 +202,7 @@ void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	ItemInterp(DeltaTime);
 }
 
 void AItem::SetItemState(EItemState newItemState)
@@ -188,3 +211,42 @@ void AItem::SetItemState(EItemState newItemState)
 	SetItemProperties(newItemState);
 }
 
+void AItem::StartItemCurve(AShooterCharacter* ch)
+{
+	Character = ch;
+	ItemInterpStartLocation = GetActorLocation();
+	bInterping = true;
+	SetItemState(EItemState::EIS_EquipInterping);
+
+	GetWorldTimerManager().SetTimer(ItemInterpTimer, this, &AItem::FinishInterping, ZCurveTime);
+}
+
+void AItem::FinishInterping()
+{
+	bInterping = false;
+	if (Character)
+	{
+		Character->GetPickupItem(this);
+	}
+}
+
+void AItem::ItemInterp(float DeltaTime)
+{
+	if (!bInterping) return;
+
+	if (Character && ItemZCurve)
+	{
+		const float ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpTimer);
+		const float CurveValue = ItemZCurve->GetFloatValue(ElapsedTime);
+
+		FVector ItemLocation = ItemInterpStartLocation;
+		const FVector CameraInterpLocation{ Character->GetCameraInterpLocation() };
+		// Получим дельту по оси Z
+		const FVector ItemToCamera{ FVector(0.f, 0.f, (CameraInterpLocation - ItemLocation).Z) };
+		const float DeltaZ = ItemToCamera.Size();
+		// Добавим значение кривой в компоненту Z вектора начального положения
+		ItemLocation.Z += CurveValue * DeltaZ;
+
+		SetActorLocation(ItemLocation, true, nullptr, ETeleportType::TeleportPhysics);
+	}
+}

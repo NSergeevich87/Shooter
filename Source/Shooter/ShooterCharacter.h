@@ -175,8 +175,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, category = Items, meta = (AllowPrivateAccess = "true"))
 	float CameraInterpElevation;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = Items, meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* ItemZCurve;
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = Items, meta = (AllowPrivateAccess = "true"))
+	class UCurveFloat* ItemZCurve;  */         
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -190,4 +190,6 @@ public:
 	void IncrementOverlapedItemCount(int8 Amount);
 
 	FVector GetCameraInterpLocation();
+
+	void GetPickupItem(AItem* Item);
 };

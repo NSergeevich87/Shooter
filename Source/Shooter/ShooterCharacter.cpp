@@ -510,8 +510,7 @@ void AShooterCharacter::SelectButtonPressed()
 {
 	if (HitItem)
 	{
-		auto SwapW = Cast<AWeapon>(HitItem);
-		SwapWeapon(SwapW);
+		HitItem->StartItemCurve(this);
 	}
 }
 
@@ -533,6 +532,15 @@ FVector AShooterCharacter::GetCameraInterpLocation()
 	FVector CameraForward{ FollowCamera->GetForwardVector() };
 	//cameralocation + forvardVector * addfv + {0, 0, adduv};
 	return CameraWorldLocation + CameraForward * CameraInterpDistance + FVector{ 0.f, 0.f, CameraInterpElevation };
+}
+
+void AShooterCharacter::GetPickupItem(AItem* Item)
+{
+	auto Weapon = Cast<AWeapon>(Item);
+	if (Weapon)
+	{
+		SwapWeapon(Weapon);
+	}
 }
 
 // Called every frame
