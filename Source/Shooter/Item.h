@@ -118,6 +118,13 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class AShooterCharacter* Character;
 
+	float ItemInterpX;
+	float ItemInterpY;
+	float InterpInitialYawOffset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UCurveFloat* ItemScaleCurve;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupComponent() const { return PickUpComponent; }
 	FORCEINLINE USphereComponent* GetSphereComponeent() const { return sphereComponent; }
