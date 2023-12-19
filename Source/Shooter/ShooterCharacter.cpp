@@ -50,7 +50,7 @@ AShooterCharacter::AShooterCharacter() :
 	//Автоматическая стрельба
 	isShouldFire(true),
 	isFireButtonPressed(false),
-	AutomaticFireRate(0.2f),
+	AutomaticFireRate(0.1f),
 	//Item trace variables
 	isShouldTraceForItems(false),
 	//CameraInterp Variables
@@ -212,6 +212,11 @@ void AShooterCharacter::FireWeapon()
 
 	//Start bullet fire timer for crosshairs
 	isCrosshairShooting();
+
+	if (EquiptedWeapon)
+	{
+		EquiptedWeapon->DecrementAmmo();
+	}
 }
 
 void AShooterCharacter::StartFireTimer()
@@ -226,17 +231,23 @@ void AShooterCharacter::StartFireTimer()
 
 void AShooterCharacter::AutoFireReset()
 {
-	isShouldFire = true;
-	if (isFireButtonPressed)
+	if (WeaponHasAmmo())
 	{
-		StartFireTimer();
+		isShouldFire = true;
+		if (isFireButtonPressed)
+		{
+			StartFireTimer();
+		}
 	}
 }
 
 void AShooterCharacter::FireButtonPressed()
 {
-	isFireButtonPressed = true;
-	StartFireTimer();
+	if (WeaponHasAmmo())
+	{
+		isFireButtonPressed = true;
+		StartFireTimer();
+	}
 }
 
 void AShooterCharacter::FireButtonReleased()
@@ -534,6 +545,12 @@ void AShooterCharacter::InitializeAmmoMap()
 {
 	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
 	AmmoMap.Add(EAmmoType::EAT_AR, StartingARAmmo);
+}
+
+bool AShooterCharacter::WeaponHasAmmo()
+{
+	if (EquiptedWeapon == nullptr) return false;
+	return EquiptedWeapon->GetAmmo() > 0;
 }
 
 FVector AShooterCharacter::GetCameraInterpLocation()

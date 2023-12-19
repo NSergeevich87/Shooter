@@ -69,6 +69,7 @@ protected:
 	void SwapWeapon(AWeapon* WeaponToSwap);
 
 	void InitializeAmmoMap();
+	bool WeaponHasAmmo();
 
 public:	
 	// Called every frame
