@@ -58,7 +58,9 @@ AShooterCharacter::AShooterCharacter() :
 	CameraInterpElevation(65.f),
 	//Starting Ammo amounts
 	Starting9mmAmmo(85),
-	StartingARAmmo(120)
+	StartingARAmmo(120),
+	//Default Combat State
+	CombatState(ECombatState::ECS_Unoccupied)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -165,89 +167,56 @@ void AShooterCharacter::TerningAtRight(float Rate)
 
 void AShooterCharacter::FireWeapon()
 {
-	isFireButtonPressed = true;
+	if (EquiptedWeapon == nullptr) return;
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	if (FireSound) UGameplayStatics::PlaySound2D(this, FireSound);
-
-	const USkeletalMeshSocket* ParticleShotSocket = GetMesh()->GetSocketByName(TEXT("ParticleFlash"));
-	if (ParticleShotSocket)
+	if (WeaponHasAmmo())
 	{
-		const FTransform SocketTransform = ParticleShotSocket->GetSocketTransform(GetMesh());
-
-		if (ParticleShot)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleShot, SocketTransform);
-		}
-
-		FVector BeamEnd;
-		bool bBeamEnd = GetBeamEndLocation(
-			SocketTransform.GetLocation(), BeamEnd);
-		if (bBeamEnd)
-		{
-			if (InpactParticle)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					InpactParticle,
-					BeamEnd);
-			}
-
-			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
-				BeamParticle,
-				SocketTransform);
-			if (Beam)
-			{
-				Beam->SetVectorParameter(FName("Target"), BeamEnd);
-			}
-		}
-	}
-
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && WeaponFire)
-	{
-		AnimInstance->Montage_Play(WeaponFire);
-		AnimInstance->Montage_JumpToSection(FName("StartFire"));
-	}
-
-	//Start bullet fire timer for crosshairs
-	isCrosshairShooting();
-
-	if (EquiptedWeapon)
-	{
+		PlayFireSound();
+		SendBullet();
+		PlayGunFireMontage();
+		//Start bullet fire timer for crosshairs
+		isCrosshairShooting();
+		//Start decrement ammo
 		EquiptedWeapon->DecrementAmmo();
+
+		StartFireTimer();
 	}
 }
 
 void AShooterCharacter::StartFireTimer()
 {
-	if (isShouldFire)
-	{
-		FireWeapon();
-		isShouldFire = false;
-		GetWorldTimerManager().SetTimer(ShootingTimerHandle, this, &AShooterCharacter::AutoFireReset, AutomaticFireRate);
-	}
+	CombatState = ECombatState::ECS_FireTimerInProgress;
+
+	GetWorldTimerManager().SetTimer(
+		ShootingTimerHandle, 
+		this, 
+		&AShooterCharacter::AutoFireReset, 
+		AutomaticFireRate
+	);
 }
 
 void AShooterCharacter::AutoFireReset()
 {
+	CombatState = ECombatState::ECS_Unoccupied;
+
 	if (WeaponHasAmmo())
 	{
-		isShouldFire = true;
 		if (isFireButtonPressed)
 		{
-			StartFireTimer();
+			FireWeapon();
 		}
+	}
+	else
+	{
+		//Reloading
 	}
 }
 
 void AShooterCharacter::FireButtonPressed()
 {
-	if (WeaponHasAmmo())
-	{
-		isFireButtonPressed = true;
-		StartFireTimer();
-	}
+	isFireButtonPressed = true;
+	FireWeapon();
 }
 
 void AShooterCharacter::FireButtonReleased()
@@ -551,6 +520,61 @@ bool AShooterCharacter::WeaponHasAmmo()
 {
 	if (EquiptedWeapon == nullptr) return false;
 	return EquiptedWeapon->GetAmmo() > 0;
+}
+
+void AShooterCharacter::PlayFireSound()
+{
+	//PlaySound
+	if (FireSound) UGameplayStatics::PlaySound2D(this, FireSound);
+}
+
+void AShooterCharacter::SendBullet()
+{
+	//Send Bullet
+	const USkeletalMeshSocket* ParticleShotSocket = EquiptedWeapon->GetSkeletalMesh()->GetSocketByName(TEXT("BarrelSocket"));
+	if (ParticleShotSocket)
+	{
+		const FTransform SocketTransform = ParticleShotSocket->GetSocketTransform(EquiptedWeapon->GetSkeletalMesh());
+
+		if (ParticleShot)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleShot, SocketTransform);
+		}
+
+		FVector BeamEnd;
+		bool bBeamEnd = GetBeamEndLocation(
+			SocketTransform.GetLocation(), BeamEnd);
+		if (bBeamEnd)
+		{
+			if (InpactParticle)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					InpactParticle,
+					BeamEnd);
+			}
+
+			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(),
+				BeamParticle,
+				SocketTransform);
+			if (Beam)
+			{
+				Beam->SetVectorParameter(FName("Target"), BeamEnd);
+			}
+		}
+	}
+}
+
+void AShooterCharacter::PlayGunFireMontage()
+{
+	//Play Gun Fire Montage
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && WeaponFire)
+	{
+		AnimInstance->Montage_Play(WeaponFire);
+		AnimInstance->Montage_JumpToSection(FName("StartFire"));
+	}
 }
 
 FVector AShooterCharacter::GetCameraInterpLocation()
