@@ -85,6 +85,9 @@ protected:
 	void SendBullet();
 	void PlayGunFireMontage();
 
+	void ReloadButtonPressed();
+	void ReloadWeapon();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -212,6 +215,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ReloadMontage;
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
