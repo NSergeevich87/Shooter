@@ -585,21 +585,32 @@ void AShooterCharacter::ReloadButtonPressed()
 void AShooterCharacter::ReloadWeapon()
 {
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	if (EquiptedWeapon == nullptr) return;
 	
 	// Do we have ammo of correct type?
-	// TODO: Create bool CarryingAmmo()
-	if (true) // Replace with CarryingAmmo()
+	if (CarryingAmmo()) 
 	{
-		// TODO: Create an enum for Weapon Type
-		// TODO: Switch on EquiptedWeapon->WeaponType
-		FName ReloadSection(TEXT("Reload SMG"));
+		CombatState = ECombatState::ECS_Reloading;
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (AnimInstance && ReloadMontage)
 		{
 			AnimInstance->Montage_Play(ReloadMontage);
-			AnimInstance->Montage_JumpToSection(ReloadSection);
+			AnimInstance->Montage_JumpToSection(EquiptedWeapon->GetReloadMontageSection());
 		}
 	}
+}
+
+bool AShooterCharacter::CarryingAmmo()
+{
+	if (EquiptedWeapon == nullptr) return false;
+
+	auto AmmoType = EquiptedWeapon->GetAmmoType();
+	if (AmmoMap.Contains(AmmoType))
+	{
+		return AmmoMap[AmmoType] > 0;
+	}
+
+	return false;
 }
 
 FVector AShooterCharacter::GetCameraInterpLocation()
@@ -662,8 +673,32 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void AShooterCharacter::FinishReloading()
 {
-	// TODO: Update AmmoMap
 	CombatState = ECombatState::ECS_Unoccupied;
+
+	// TODO: Update AmmoMap
+	if (EquiptedWeapon == nullptr) return;
+
+	const auto AmmoType = EquiptedWeapon->GetAmmoType();
+
+	if (AmmoMap.Contains(AmmoType))
+	{
+		int32 CarriedAmmo = AmmoMap[AmmoType];
+		const int32 WeaponAmmoCapacity = EquiptedWeapon->GetMagazineCapacity();
+		const int32 MagazineEmptySpace = WeaponAmmoCapacity - EquiptedWeapon->GetAmmo();
+
+		if (CarriedAmmo < MagazineEmptySpace)
+		{
+			EquiptedWeapon->ReloadWeapon(CarriedAmmo);
+			CarriedAmmo = 0;
+			AmmoMap.Add(AmmoType, CarriedAmmo);
+		}
+		else
+		{
+			EquiptedWeapon->ReloadWeapon(MagazineEmptySpace);
+			CarriedAmmo -= MagazineEmptySpace;
+			AmmoMap.Add(AmmoType, CarriedAmmo);
+		}
+	}
 }
 
 float AShooterCharacter::GetCrosshairSpreadMultiplier() const

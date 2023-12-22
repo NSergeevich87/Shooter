@@ -3,11 +3,14 @@
 
 #include "Weapon.h"
 
-AWeapon::AWeapon() : 
-	bFalling{false}, 
-	ThrowWeaponTime{0.7f},
-	Ammo{0},
-	WeaponType{EWeaponType::EWT_SubmachineGun}
+AWeapon::AWeapon() :
+	bFalling{ false },
+	ThrowWeaponTime{ 0.7f },
+	Ammo(30),
+	MagazineCapacity(30),
+	WeaponType{ EWeaponType::EWT_SubmachineGun },
+	AmmoType(EAmmoType::EAT_9mm),
+	ReloadMontageSection(FName(TEXT("Reload SMG")))
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -53,6 +56,12 @@ void AWeapon::DecrementAmmo()
 	{
 		--Ammo;
 	}
+}
+
+void AWeapon::ReloadWeapon(int32 Amount)
+{
+	checkf(Ammo + Amount <= MagazineCapacity, TEXT("Attempted to reload with more than magazine capacity!"));
+	Ammo += Amount;
 }
 
 void AWeapon::StopFalling()
