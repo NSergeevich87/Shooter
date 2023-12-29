@@ -613,6 +613,25 @@ bool AShooterCharacter::CarryingAmmo()
 	return false;
 }
 
+void AShooterCharacter::GrabClip()
+{
+	if (EquiptedWeapon == nullptr) return;
+
+	int32 ClipBoneIndex = EquiptedWeapon->GetSkeletalMesh()->GetBoneIndex(EquiptedWeapon->GetClipBoneName());
+	ClipTransform = EquiptedWeapon->GetSkeletalMesh()->GetBoneTransform(ClipBoneIndex);
+
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, true);
+	HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("hand_l")));
+	HandSceneComponent->SetWorldTransform(ClipTransform);
+
+	EquiptedWeapon->SetMovingClip(true);
+}
+
+void AShooterCharacter::ReplaceClip()
+{
+	EquiptedWeapon->SetMovingClip(false);
+}
+
 FVector AShooterCharacter::GetCameraInterpLocation()
 {
 	FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
@@ -686,7 +705,7 @@ void AShooterCharacter::FinishReloading()
 		const int32 WeaponAmmoCapacity = EquiptedWeapon->GetMagazineCapacity();
 		const int32 MagazineEmptySpace = WeaponAmmoCapacity - EquiptedWeapon->GetAmmo();
 
-		if (CarriedAmmo < MagazineEmptySpace)
+		if (CarriedAmmo <= MagazineEmptySpace)
 		{
 			EquiptedWeapon->ReloadWeapon(CarriedAmmo);
 			CarriedAmmo = 0;
