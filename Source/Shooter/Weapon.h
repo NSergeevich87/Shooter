@@ -68,4 +68,6 @@ public:
 	FORCEINLINE FName GetReloadMontageSection() const { return ReloadMontageSection; }
 	FORCEINLINE FName GetClipBoneName() const { return ClipBoneName; }
 	FORCEINLINE void SetMovingClip(bool value) { bMoveClip = value; }
+
+	bool ClipIsFull();
 };

@@ -15,7 +15,9 @@ UShooterAnimInstance::UShooterAnimInstance() :
 	isAiming(false),
 	CharacterYaw(0.f),
 	CharacterYawLastFrame(0.f),
-	RootYawOffset(0.f)
+	RootYawOffset(0.f),
+	Pitch(0.f),
+	bReloading(false)
 {
 }
 
@@ -25,8 +27,11 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	{
 		ShooterCharacter = Cast<AShooterCharacter>(TryGetPawnOwner());
 	}
-	else
+
+	if (ShooterCharacter)
 	{
+		bReloading = ShooterCharacter->GetCombatState() == ECombatState::ECS_Reloading;
+
 		FVector Velocity{ ShooterCharacter->GetVelocity() };
 		Velocity.Z = 0;
 		Speed = Velocity.Size();
@@ -74,6 +79,9 @@ void UShooterAnimInstance::NativeInitializeAnimation()
 void UShooterAnimInstance::TurnInPlace()
 {
 	if (ShooterCharacter == nullptr) return;
+
+	Pitch = ShooterCharacter->GetBaseAimRotation().Pitch;
+
 	if (Speed > 0)
 	{
 		// Don't want to turn in place; Character is moving
@@ -113,5 +121,7 @@ void UShooterAnimInstance::TurnInPlace()
 				RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess;
 			}
 		}
+
+		if (GEngine) GEngine->AddOnScreenDebugMessage(1, -1, FColor::Blue, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
 	}
 }
