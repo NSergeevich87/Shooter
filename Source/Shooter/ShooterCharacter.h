@@ -88,6 +88,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ReplaceClip();
 
+	void CrouchButtonPressed();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -228,10 +230,14 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* HandSceneComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bCrouching;
+
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool GetAimingStatus() const { return isAiming; }
+	FORCEINLINE bool GetCrouching() const { return bCrouching; }
 
 	UFUNCTION(BlueprintCallable)
 	float GetCrosshairSpreadMultiplier() const;
