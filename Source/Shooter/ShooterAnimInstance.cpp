@@ -21,7 +21,8 @@ UShooterAnimInstance::UShooterAnimInstance() :
 	OffsetState(EOffsetState::EOS_Hip),
 	CharacterRotation(FRotator(0.f)),
 	CharacterRotationLastFrame(FRotator(0.f)),
-	YawDelta(0.f)
+	YawDelta(0.f),
+	RecoilWeight(1.0f)
 {
 }
 
@@ -128,6 +129,8 @@ void UShooterAnimInstance::TurnInPlace()
 
 		if (Turning > 0)
 		{
+			bTurningInPlace = true;
+
 			RotationCurveLastFrame = RotationCurve;
 			RotationCurve = GetCurveValue(TEXT("Rotation"));
 
@@ -144,8 +147,47 @@ void UShooterAnimInstance::TurnInPlace()
 				RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess;
 			}
 		}
+		else
+		{
+			bTurningInPlace = false;
+		}
 
-		if (GEngine) GEngine->AddOnScreenDebugMessage(1, -1, FColor::Blue, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
+		if (bTurningInPlace)
+		{
+			if (bReloading)
+			{
+				RecoilWeight = 1.0f;
+			}
+			else
+			{
+				RecoilWeight = 0.f;
+			}
+		}
+		else
+		{
+			if (bCrouch)
+			{
+				if (bReloading)
+				{
+					RecoilWeight = 1.0f;
+				}
+				else
+				{
+					RecoilWeight = 0.1f;
+				}
+			}
+			else
+			{
+				if (isAiming || bReloading)
+				{
+					RecoilWeight = 1.0f;
+				}
+				else
+				{
+					RecoilWeight = 0.5f;
+				}
+			}
+		}
 	}
 }
 
