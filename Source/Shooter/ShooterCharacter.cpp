@@ -365,7 +365,7 @@ void AShooterCharacter::CalculateCrosshairSpread(float DeltaTime)
 		CrosshairAimFactor +
 		CrosshairShootFactor;
 
-	UE_LOG(LogTemp, Warning, TEXT("CrosshairSpeedFactor: %f"), CrosshairSpeedFactor);
+	//UE_LOG(LogTemp, Warning, TEXT("CrosshairSpeedFactor: %f"), CrosshairSpeedFactor);
 }
 
 void AShooterCharacter::isCrosshairShooting()
