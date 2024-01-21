@@ -15,6 +15,7 @@
 #include "Weapon.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 
 
 // Sets default values
@@ -61,7 +62,13 @@ AShooterCharacter::AShooterCharacter() :
 	StartingARAmmo(120),
 	//Default Combat State
 	CombatState(ECombatState::ECS_Unoccupied),
-	bCrouching(false)
+	bCrouching(false),
+	BaseMovementSpeed(650.f),
+	CrouchMovementSpeed(300.f),
+	StandingCapsuleHalfHight(88.f),
+	CrouchingCapsuleHalfHight(44.f),
+	BaseFrictionValue(2.f),
+	CrouchingFrictionValue(100.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -71,7 +78,7 @@ AShooterCharacter::AShooterCharacter() :
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 220.f; //The camera follows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = true; //Rotate the arm based on the controller
-	CameraBoom->SocketOffset = FVector{ 0.f, 50.f, 75.f };
+	CameraBoom->SocketOffset = FVector{ 0.f, 50.f, 45.f };
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -103,6 +110,8 @@ void AShooterCharacter::BeginPlay()
 	}
 
 	InitializeAmmoMap();
+
+	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -645,6 +654,52 @@ void AShooterCharacter::CrouchButtonPressed()
 	{
 		bCrouching = !bCrouching;
 	}
+	if (bCrouching)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+		GetCharacterMovement()->GroundFriction = CrouchingFrictionValue;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+		GetCharacterMovement()->GroundFriction = BaseFrictionValue;
+	}
+}
+
+void AShooterCharacter::Jump()
+{
+	if (bCrouching)
+	{
+		bCrouching = false;
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+	}
+	else
+	{
+		ACharacter::Jump();
+	}
+	
+}
+
+void AShooterCharacter::InterpCapsuleHalfHight(float DeltaTime)
+{
+	float TargetCapsuleHalfHight{};
+
+	if (bCrouching)
+	{
+		TargetCapsuleHalfHight = CrouchingCapsuleHalfHight;
+	}
+	else
+	{
+		TargetCapsuleHalfHight = StandingCapsuleHalfHight;
+	}
+
+	const float InterpHalfHight{ FMath::FInterpTo(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), TargetCapsuleHalfHight, DeltaTime, 20.f)};
+
+	const float DeltaCapsuleHalfHeight{ InterpHalfHight - GetCapsuleComponent()->GetScaledCapsuleHalfHeight() };
+	const FVector MeshOffset{ 0.f, 0.f, -DeltaCapsuleHalfHeight };
+	GetMesh()->AddLocalOffset(MeshOffset); 
+
+	GetCapsuleComponent()->SetCapsuleHalfHeight(InterpHalfHight);
 }
 
 FVector AShooterCharacter::GetCameraInterpLocation()
@@ -681,6 +736,8 @@ void AShooterCharacter::Tick(float DeltaTime)
 	//SetLookSence(); //Метод чувствительности для джойстика или стрелок на клавиатуре
 
 	TraceForItems();
+
+	InterpCapsuleHalfHight(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -695,7 +752,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(TEXT("TernRight"), this, &AShooterCharacter::TerningAtRight);
 	PlayerInputComponent->BindAxis(TEXT("MouseUp"), this, &AShooterCharacter::TurnMouseUp);
 	PlayerInputComponent->BindAxis(TEXT("MouseRight"), this, &AShooterCharacter::TurnMouseRight);
-	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &AShooterCharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction(TEXT("MainFire"), IE_Pressed, this, &AShooterCharacter::FireButtonPressed);
