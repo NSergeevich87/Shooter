@@ -23,8 +23,8 @@ AShooterCharacter::AShooterCharacter() :
 	//Чувствительность смещения по осям при помощи мыши
 	MouseHipTurnSenceRate(1.0f),
 	MouseHipUpSenceRate(1.0f),
-	MouseAimTurnSenceRate(0.3f),
-	MouseAimUpSenceRate(0.3f),
+	MouseAimTurnSenceRate(0.4f),
+	MouseAimUpSenceRate(0.4f),
 	//Чувствительность смещения поворота по осям при помощи стрелок или джойстика
 	TernRightRate(45.f),
 	TernUpRate(45.f),
@@ -36,7 +36,7 @@ AShooterCharacter::AShooterCharacter() :
 	AimUpSenceRate(20.f),
 	//Field of View settings
 	BaseCameraView(0.f),
-	ZoomCameraView(35.f),
+	ZoomCameraView(25.f),
 	NormalCameraView(0.f),
 	ZoomCameraSpeed(20.f),
 	//Crosshair spread factors
@@ -78,7 +78,7 @@ AShooterCharacter::AShooterCharacter() :
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 220.f; //The camera follows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = true; //Rotate the arm based on the controller
-	CameraBoom->SocketOffset = FVector{ 0.f, 50.f, 45.f };
+	CameraBoom->SocketOffset = FVector{ 0.f, 50.f, 70.f };
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -278,11 +278,16 @@ bool AShooterCharacter::GetBeamEndLocation(
 void AShooterCharacter::ZoomCameraPressed()
 {
 	isAiming = true;
+	GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
 }
 
 void AShooterCharacter::ZoomCameraReleased()
 {
 	isAiming = false;
+	if (!bCrouching)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+	}
 }
 
 void AShooterCharacter::CameraInterpZoom(float DeltaTime)
