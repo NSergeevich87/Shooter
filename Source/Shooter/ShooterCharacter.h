@@ -94,6 +94,9 @@ protected:
 
 	void InterpCapsuleHalfHight(float DeltaTime);
 
+	void Aim();
+	void StopAiming();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -259,6 +262,8 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float CrouchingFrictionValue{};
+
+	float bAimingButtonPressed;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

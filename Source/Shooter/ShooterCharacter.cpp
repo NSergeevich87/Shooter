@@ -68,7 +68,8 @@ AShooterCharacter::AShooterCharacter() :
 	StandingCapsuleHalfHight(88.f),
 	CrouchingCapsuleHalfHight(44.f),
 	BaseFrictionValue(2.f),
-	CrouchingFrictionValue(100.f)
+	CrouchingFrictionValue(100.f),
+	bAimingButtonPressed(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -277,17 +278,17 @@ bool AShooterCharacter::GetBeamEndLocation(
 
 void AShooterCharacter::ZoomCameraPressed()
 {
-	isAiming = true;
-	GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+	bAimingButtonPressed = true;
+	if (CombatState != ECombatState::ECS_Reloading)
+	{
+		Aim();
+	}
 }
 
 void AShooterCharacter::ZoomCameraReleased()
 {
-	isAiming = false;
-	if (!bCrouching)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
-	}
+	bAimingButtonPressed = false;
+	StopAiming();
 }
 
 void AShooterCharacter::CameraInterpZoom(float DeltaTime)
@@ -605,11 +606,17 @@ void AShooterCharacter::ReloadButtonPressed()
 void AShooterCharacter::ReloadWeapon()
 {
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
+
 	if (EquiptedWeapon == nullptr) return;
 	
 	// Do we have ammo of correct type?
 	if (CarryingAmmo() && !EquiptedWeapon->ClipIsFull()) 
 	{
+		if (isAiming)
+		{
+			StopAiming();
+		}
+
 		CombatState = ECombatState::ECS_Reloading;
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (AnimInstance && ReloadMontage)
@@ -707,6 +714,27 @@ void AShooterCharacter::InterpCapsuleHalfHight(float DeltaTime)
 	GetCapsuleComponent()->SetCapsuleHalfHeight(InterpHalfHight);
 }
 
+/**
+ * @brief 
+*/
+void AShooterCharacter::Aim()
+{
+	isAiming = true;
+	GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+}
+
+/**
+ * @brief 
+*/
+void AShooterCharacter::StopAiming()
+{
+	isAiming = false;
+	if (!bCrouching)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+	}
+}
+
 FVector AShooterCharacter::GetCameraInterpLocation()
 {
 	FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
@@ -777,6 +805,11 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 void AShooterCharacter::FinishReloading()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
+
+	if (bAimingButtonPressed)
+	{
+		Aim(); 
+	}
 
 	// TODO: Update AmmoMap
 	if (EquiptedWeapon == nullptr) return;
