@@ -798,14 +798,14 @@ void AShooterCharacter::InitializeInterpLocations()
 	FInterpLocation InterpLoc6{ InterpComp6, 0 };
 	InterpLocations.Add(InterpLoc6);
 }
-
-FVector AShooterCharacter::GetCameraInterpLocation()
-{
-	FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
-	FVector CameraForward{ FollowCamera->GetForwardVector() };
-	//cameralocation + forvardVector * addfv + {0, 0, adduv};
-	return CameraWorldLocation + CameraForward * CameraInterpDistance + FVector{ 0.f, 0.f, CameraInterpElevation };
-}
+// No longer needed; AItem has GetInterpLocation
+//FVector AShooterCharacter::GetCameraInterpLocation()
+//{
+//	FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
+//	FVector CameraForward{ FollowCamera->GetForwardVector() };
+//	//cameralocation + forvardVector * addfv + {0, 0, adduv};
+//	return CameraWorldLocation + CameraForward * CameraInterpDistance + FVector{ 0.f, 0.f, CameraInterpElevation };
+//}
 
 void AShooterCharacter::GetPickupItem(AItem* Item)
 {
@@ -834,6 +834,32 @@ FInterpLocation AShooterCharacter::GetInterpLocation(int32 Index)
 		return InterpLocations[Index];
 	}
 	return FInterpLocation();
+}
+
+int32 AShooterCharacter::GetInterpLocationIndex()
+{
+	int32 LowestIndex{1};
+	int32 LowestCount{ INT_MAX };
+
+	for (int32 i = 1; i < InterpLocations.Num(); i++)
+	{
+		if (InterpLocations[i].ItemCount < LowestCount)
+		{
+			LowestIndex = i;
+			LowestCount = InterpLocations[i].ItemCount;
+		}
+	}
+
+	return LowestIndex;
+}
+
+void AShooterCharacter::IncrementInterpLocItemCount(int32 Index, int32 Amount)
+{
+	if (Amount < -1 || Amount > 1) return;
+	if (InterpLocations.Num() >= Index)
+	{
+		InterpLocations[Index].ItemCount += Amount;
+	}
 }
 
 // Called every frame

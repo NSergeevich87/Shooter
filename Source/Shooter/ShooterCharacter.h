@@ -317,10 +317,14 @@ public:
 	FORCEINLINE int8 GetOverlapedItemCount() const { return OverlapedItemCount; }
 	void IncrementOverlapedItemCount(int8 Amount);
 
-	FVector GetCameraInterpLocation();
+	// No longer needed; AItem has GetInterpLocation
+	//FVector GetCameraInterpLocation();
 
 	void GetPickupItem(AItem* Item);
 
 	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
 	FInterpLocation GetInterpLocation(int32 Index);
+
+	int32 GetInterpLocationIndex();
+	void IncrementInterpLocItemCount(int32 Index, int32 Amount);
 };

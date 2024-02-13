@@ -75,6 +75,8 @@ protected:
 	void FinishInterping();
 	void ItemInterp(float DeltaTime);
 
+	FVector GetInterpLocation();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -142,6 +144,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	EItemType ItemTipe;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 InterpLocIndex;
 
 public:
 	FORCEINLINE UWidgetComponent* GetPickupComponent() const { return PickUpComponent; }

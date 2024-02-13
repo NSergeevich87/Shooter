@@ -24,7 +24,8 @@ AItem::AItem() :
 	ItemInterpX(0.f),
 	ItemInterpY(0.f),
 	InterpInitialYawOffset(0.f),
-	ItemTipe(EItemType::EIT_MAX)
+	ItemTipe(EItemType::EIT_MAX),
+	InterpLocIndex(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -222,6 +223,9 @@ void AItem::StartItemCurve(AShooterCharacter* ch)
 {
 	Character = ch;
 
+	InterpLocIndex = Character->GetInterpLocationIndex();
+	Character->IncrementInterpLocItemCount(InterpLocIndex, 1);
+
 	if (PickupSound)
 	{
 		UGameplayStatics::PlaySound2D(this, PickupSound);
@@ -244,6 +248,7 @@ void AItem::FinishInterping()
 	bInterping = false;
 	if (Character)
 	{
+		Character->IncrementInterpLocItemCount(InterpLocIndex, -1);
 		Character->GetPickupItem(this);
 	}
 	SetActorScale3D(FVector(1.f));
@@ -252,14 +257,14 @@ void AItem::FinishInterping()
 void AItem::ItemInterp(float DeltaTime)
 {
 	if (!bInterping) return;
-
+	
 	if (Character && ItemZCurve)
 	{
 		const float ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpTimer);
 		const float CurveValue = ItemZCurve->GetFloatValue(ElapsedTime);
 
 		FVector ItemLocation = ItemInterpStartLocation;
-		const FVector CameraInterpLocation{ Character->GetCameraInterpLocation() };
+		const FVector CameraInterpLocation{ GetInterpLocation() };//{ Character->GetCameraInterpLocation() };
 		// Получим дельту по оси Z
 		const FVector ItemToCamera{ FVector(0.f, 0.f, (CameraInterpLocation - ItemLocation).Z) };
 		const float DeltaZ = ItemToCamera.Size();
@@ -295,4 +300,21 @@ void AItem::ItemInterp(float DeltaTime)
 		}
 		
 	}
+}
+
+FVector AItem::GetInterpLocation()
+{
+	if (Character == nullptr) return FVector(0.f);
+
+	switch (ItemTipe)
+	{
+	case EItemType::EIT_Ammo:
+		return Character->GetInterpLocation(InterpLocIndex).SceneComponent->GetComponentLocation();
+		break;
+	case EItemType::EIT_Weapon:
+		return Character->GetInterpLocation(0).SceneComponent->GetComponentLocation();
+		break;
+	}
+
+	return FVector();
 }
