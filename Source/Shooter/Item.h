@@ -30,6 +30,15 @@ enum class EItemState : uint8
 	EIS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	EIT_Ammo UMETA(DisplayName = "Ammo"),
+	EIT_Weapon UMETA(DisplayName = "Weapon"),
+
+	EIT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class SHOOTER_API AItem : public AActor
 {
@@ -61,10 +70,12 @@ protected:
 
 	void SetActiveStars();
 
-	void SetItemProperties(EItemState State);
+	virtual void SetItemProperties(EItemState State);
 
 	void FinishInterping();
 	void ItemInterp(float DeltaTime);
+
+	FVector GetInterpLocation();
 
 public:	
 	// Called every frame
@@ -131,7 +142,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USoundCue* EquipSound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemType ItemTipe;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 InterpLocIndex;
+
 public:
+	void PlayPickupSound();
+	void PlayEquipSound();
+
 	FORCEINLINE UWidgetComponent* GetPickupComponent() const { return PickUpComponent; }
 	FORCEINLINE USphereComponent* GetSphereComponeent() const { return sphereComponent; }
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return ItemCollisionBox; }
@@ -141,4 +161,5 @@ public:
 	void StartItemCurve(AShooterCharacter* ch);
 	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
+	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
 };
