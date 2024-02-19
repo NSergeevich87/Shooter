@@ -149,6 +149,9 @@ private:
 	int32 InterpLocIndex;
 
 public:
+	void PlayPickupSound();
+	void PlayEquipSound();
+
 	FORCEINLINE UWidgetComponent* GetPickupComponent() const { return PickUpComponent; }
 	FORCEINLINE USphereComponent* GetSphereComponeent() const { return sphereComponent; }
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return ItemCollisionBox; }
