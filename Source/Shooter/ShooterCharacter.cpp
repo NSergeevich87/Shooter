@@ -476,12 +476,14 @@ void AShooterCharacter::TraceForItems()
 			if (HitItem && HitItem->GetPickupComponent())
 			{
 				HitItem->GetPickupComponent()->SetVisibility(true);
+				HitItem->EnableCustomDepth();
 			}
 			if (LastFrameTraceHitItem)
 			{
-				if (LastFrameTraceHitItem != HitItem)
+				if (HitItem != LastFrameTraceHitItem)
 				{
 					LastFrameTraceHitItem->GetPickupComponent()->SetVisibility(false);
+					LastFrameTraceHitItem->DisableCustomDepth();
 				}
 			}
 
@@ -491,6 +493,7 @@ void AShooterCharacter::TraceForItems()
 	else if (LastFrameTraceHitItem)
 	{
 		LastFrameTraceHitItem->GetPickupComponent()->SetVisibility(false);
+		LastFrameTraceHitItem->DisableCustomDepth();
 	}
 }
 

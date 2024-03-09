@@ -31,6 +31,8 @@ void AAmmo::BeginPlay()
 	Super::BeginPlay();
 
 	AmmoCollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AAmmo::AmmoSphereOverlap);
+
+	InitializeCustomDepth();
 }
 
 void AAmmo::SetItemProperties(EItemState State)
@@ -95,4 +97,19 @@ void AAmmo::AmmoSphereOverlap(
 			AmmoCollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 	}
+}
+
+void AAmmo::InitializeCustomDepth()
+{
+	DisableCustomDepth();
+}
+
+void AAmmo::EnableCustomDepth()
+{
+	AmmoMesh->SetRenderCustomDepth(true);
+}
+
+void AAmmo::DisableCustomDepth()
+{
+	AmmoMesh->SetRenderCustomDepth(false);
 }

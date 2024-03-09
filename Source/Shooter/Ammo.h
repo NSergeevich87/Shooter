@@ -39,6 +39,8 @@ protected:
 		const FHitResult& SweepResult
 		);
 
+	virtual void InitializeCustomDepth() override;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))	
 	UStaticMeshComponent* AmmoMesh{};
@@ -56,4 +58,6 @@ public:
 	FORCEINLINE UStaticMeshComponent* GetAmmoMesh() const { return AmmoMesh; }
 	FORCEINLINE EAmmoType GetAmmoType() const { return AmmoType; }
 
+	virtual void EnableCustomDepth() override;
+	virtual void DisableCustomDepth() override;
 };

@@ -169,6 +169,8 @@ void AItem::BeginPlay()
 
 	//Set item properties based on ItemState
 	SetItemProperties(itemState);
+
+	InitializeCustomDepth();
 }
 
 void AItem::OnSphereBeginOverlap(
@@ -270,6 +272,16 @@ void AItem::StartItemCurve(AShooterCharacter* ch)
 	InterpInitialYawOffset = ItemRotationYaw - CameraRotationYaw;
 }
 
+void AItem::EnableCustomDepth()
+{
+	ItemSkeletalMesh->SetRenderCustomDepth(true);
+}
+
+void AItem::DisableCustomDepth()
+{
+	ItemSkeletalMesh->SetRenderCustomDepth(false);
+}
+
 void AItem::FinishInterping()
 {
 	bInterping = false;
@@ -344,4 +356,9 @@ FVector AItem::GetInterpLocation()
 	}
 
 	return FVector();
+}
+
+void AItem::InitializeCustomDepth()
+{
+	DisableCustomDepth();
 }

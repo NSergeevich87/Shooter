@@ -77,6 +77,8 @@ protected:
 
 	FVector GetInterpLocation();
 
+	virtual void InitializeCustomDepth();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -162,4 +164,7 @@ public:
 	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
 	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
+
+	virtual void EnableCustomDepth();
+	virtual void DisableCustomDepth();
 };
